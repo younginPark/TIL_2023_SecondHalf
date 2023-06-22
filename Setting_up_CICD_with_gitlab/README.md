@@ -35,3 +35,7 @@
 - 참고
   - npm이 아닌 npx create-react-app 을 쓰는 이유
   https://ljh86029926.gitbook.io/coding-apple-react/undefined/npm-npx
+
+### GitLab Repository에 생성한 React 프로젝트 올리기
+1. 프로젝트 생성한걸 GitLab에 커밋 및 푸쉬
+   ![commit](image/push_project_in_gitlab_230622/commit.png)
