@@ -7,7 +7,8 @@
 - GitLab 회원가입 및 Repository 생성
 - React 프로젝트 생성
 - GitLab Repository에 올리기
-- Gitlab Runner 토큰 발급
+- React + Nginx 통해 docker 띄워 접속 확인
+- Gitlab Runner 토큰 발급 및 등록
 - gitlab-ci.yml 작성
 
 ---
@@ -39,3 +40,13 @@
 ### GitLab Repository에 생성한 React 프로젝트 올리기
 1. 프로젝트 생성한걸 GitLab에 커밋 및 푸쉬
    ![commit](image/push_project_in_gitlab_230622/commit.png)
+
+### React + Nginx 통해 docker 띄워 접속 확인
+1. React 빌드 순서
+   - ```npm run build```
+   - ```npm install -g serve```
+   - ```npx serve -s build```
+   ![npmrunbuild](image/react_build_230624/npm_run_build.png)
+   ![npxservebuild](image/react_build_230624/npx_serve_build.png)
+   
+2. Nginx 사용해서 docker에 React 앱 띄우기
