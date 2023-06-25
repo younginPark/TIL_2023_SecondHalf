@@ -97,3 +97,27 @@
      ![run](image/230625/runcontainer.png)
    - 브라우저 접속하여 localhost:3000 확인
     ![localhost](image/230625/localhost.png)
+
+### Docker 사용하여 Gitlab runner 등록
+1. GitLab에 접속하여 프로젝트 러너 생성
+   ![등록](image/230626/enroll01.png)
+   ![등록2](image/230626/enroll.png)
+   ![등록3](image/230626/enroll02.png)
+   - 세번째 이미지에서 토큰 값을 잘 저장해둔다.
+2. Docker 컨테이너 백그라운드 실행 및 토큰 등록
+   ```
+   docker run -d --name gitlab-runner gitlab/gitlab-runner:latest
+   ```
+   ```
+   docker exec -it gitlab-runner bash
+   ```
+   ![터미널](image/230626/terminal.png)
+3. GitLab runner 서비스 시작
+   ```
+   gitlab-runner start
+   ```
+   ```
+   gitlab-runner run
+   ```
+4. 잘 등록되었는지 확인
+   ![확인](image/230626/check.png)
