@@ -50,3 +50,50 @@
    ![npxservebuild](image/react_build_230624/npx_serve_build.png)
    
 2. Nginx 사용해서 docker에 React 앱 띄우기
+   - Nginx는 정적 파일들을 처리하는 웹서버
+   - docker에서 Nginx 이미지를 사용하여 React 앱을 띄움
+   - 시작
+     - React 소스코드가 있는 경로에 nginx.conf 추가
+      ```
+      server {
+         listen 80;
+         access_log /var/log/nginx/access.log;
+         error_log /var/log/nginx/error.log;
+         location / {
+            root /usr/share/nginx/html;
+            index index.html index.html;
+            try_files $uri $uri/ /index.html;
+         }
+      }
+      ```
+     - React 소스코드가 있는 경로에 Dockerfile 추가 (빌드, 배포 함께 진행)
+      ```
+      # React 빌드
+      FROM node:20-alpine3.17 as build
+      RUN mkdir /app
+      WORKDIR /app
+      COPY package*.json ./
+      RUN npm install
+      COPY . .
+      RUN npm run build
+
+      # Nginx를 웹서버로 배포
+      FROM nginx:stable-alpine
+      COPY --from=build /app/build /usr/share/nginx/html
+      RUN rm /etc/nginx/conf.d/default.conf
+      COPY nginx.conf /etc/nginx/conf.d
+      EXPOSE 80
+      CMD ["nginx", "-g", "daemon off;"]
+      ```
+   - Docker image 생성
+     ```
+     front-web % docker build -t front-web:230625 .
+     ```
+     ![build](image/230625/buildimage.png)
+   - Docker container 실행
+     ```
+     docker run -d -p 3001:80 --name front-web front-web:230625
+     ```
+     ![run](image/230625/runcontainer.png)
+   - 브라우저 접속하여 localhost:3000 확인
+    ![localhost](image/230625/localhost.png)
