@@ -121,3 +121,53 @@
    ```
 4. 잘 등록되었는지 확인
    ![확인](image/230626/check.png)
+
+
+### gitlab-ci.yml 작성하기
+1. gitlab-ci.yml에 포함되어야 하는 내용
+   1. react 빌드
+   2. 빌드된 react를 nginx 서버에 띄우는 Dockerfile로 Docker 이미지 빌드
+   3. 해당 Docker 이미지로 Docker run
+   
+2. gitlab-ci.yml
+   ```
+   stages:
+   - build
+   - docker-build
+   - deploy
+
+   # react 빌드
+   react-build-job:
+   stage: build
+   image: node:20-alpine3.17
+   script:
+      - echo "Start building react app"
+      - npm install
+      - npm run build
+      - echo "Build Successful"
+   artifacts:
+      - front-web/builds/
+
+   # 위에서 빌드된 react가 아닌 dockerfile을 이용하여 빌드
+   docker-build-job:
+   stage: docker-build
+   image: docker:latest
+   before_script:
+      - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+   script:
+      - docker build . -t nginx-web-static:latest front-web/Dockerfile
+      - docker push nginx-web-static:latest
+
+   # 도커 이미지로 서버 배포
+   deploy-app:
+   stage: deploy
+   before-script:
+      - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+      - docker pull nginx-web-static:latest
+   script:
+      - docker run -d --name nginx-web-static nginx-web-static:latest
+   ```
+
+   3. Trouble Shooting
+      1. 오류
+         ![오류01](image/20230629/오류1.png)

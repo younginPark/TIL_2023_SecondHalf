@@ -22,10 +22,14 @@ docker-build-job:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker build . -t nginx-web-static front-web/Dockerfile
-    - docker push "$CI_REGISTRY_IMAGE"
+    - docker build . -t nginx-web-static:latest front-web/Dockerfile
+    - docker push nginx-web-static:latest
 
 # 도커 이미지로 서버 배포
 deploy-app:
   stage: deploy
-  image: 
+  before-script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker pull nginx-web-static:latest
+  script:
+    - docker run -d --name nginx-web-static nginx-web-static:latest
