@@ -25,6 +25,8 @@ muted 를 true를 주면 자동 재생 시킬 수 있다.
 
 구글링을 해보니 만약 이 정책을 깨고 싶다면 mouseover 같은 이벤트를 dom 엘리먼트들에 등록하여 자동재생 시키라고도 한다. (만약 이렇게 하게 된다면 성능저하 문제가 생길 수 있기 때문에 removeEventListener도 꼭 해줄것)
 
+### 출처
+
 [16. useEffect를 사용하여 마운트/언마운트/업데이트시 할 작업 설정하기](https://react.vlpt.us/basic/16-useEffect.html)
 
 [https://velog.io/@zerozoo-front/useEffect와-addEventListener](https://velog.io/@zerozoo-front/useEffect%EC%99%80-addEventListener)
