@@ -132,42 +132,72 @@
 2. gitlab-ci.yml
    ```
    stages:
-   - build
-   - docker-build
-   - deploy
+     - build
+     - docker-build
+     - deploy
 
    # react 빌드
    react-build-job:
-   stage: build
-   image: node:20-alpine3.17
-   script:
-      - echo "Start building react app"
-      - npm install
-      - npm run build
-      - echo "Build Successful"
-   artifacts:
-      - front-web/builds/
+     stage: build
+     image: node:20-alpine3.17
+     script:
+       - echo "Start building react app"
+       - cd $CI_PROJECT_DIR/src
+       - npm install
+       - npm run build
+       - echo "Build Successful"
 
    # 위에서 빌드된 react가 아닌 dockerfile을 이용하여 빌드
    docker-build-job:
-   stage: docker-build
-   image: docker:latest
-   before_script:
-      - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-   script:
-      - docker build . -t nginx-web-static:latest front-web/Dockerfile
-      - docker push nginx-web-static:latest
+     stage: docker-build
+     image: docker:latest
+     services:
+       - name: docker:dind
+         entrypoint: ["env", "-u", "DOCKER_HOST"]
+         command: ["dockerd-entrypoint.sh"]
+     variables:
+       DOCKER_HOST: tcp://docker:2375/
+       DOCKER_DRIVER: overlay2
+       # See https://github.com/docker-library/docker/pull/166
+       DOCKER_TLS_CERTDIR: ""
+     before_script:
+       - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+       - echo $CI_REGISTRY
+     script:
+       - docker build -t registry.gitlab.com/personal5062525/mygitlab/nginx-web-static:$CI_COMMIT_SHORT_SHA .
+       - docker push registry.gitlab.com/personal5062525/mygitlab/nginx-web-static:$CI_COMMIT_SHORT_SHA
 
    # 도커 이미지로 서버 배포
+   force cicd
    deploy-app:
-   stage: deploy
-   before-script:
-      - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-      - docker pull nginx-web-static:latest
-   script:
-      - docker run -d --name nginx-web-static nginx-web-static:latest
+     stage: deploy
+     image: docker:latest
+     services:
+       - name: docker:dind
+         entrypoint: ["env", "-u", "DOCKER_HOST"]
+         command: ["dockerd-entrypoint.sh"]
+     variables:
+       DOCKER_HOST: tcp://docker:2375/
+       DOCKER_DRIVER: overlay2
+       # See https://github.com/docker-library/docker/pull/166
+       DOCKER_TLS_CERTDIR: ""
+     before_script:
+       - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+     script:
+       - docker pull registry.gitlab.com/personal5062525/mygitlab/nginx-web-static:$CI_COMMIT_SHORT_SHA
+       - docker run -d -p 8080:80 --name nginx-web-static registry.gitlab.com/personal5062525/mygitlab/nginx-web-static:$CI_COMMIT_SHORT_SHA
    ```
 
-   3. Trouble Shooting
-      1. 오류
-         ![오류01](image/20230629/오류1.png)
+3. docker deploy 통해 배포는 되는데 접속이 안되어 2번째 stage에서 빌드된 docker image를 pull 받아서 접속하였다.
+   ![job](image/230702/job.png)
+   ![pull](image/230702/imagepull.png)
+   ![container](image/230702/container.png)
+   ![localhost](image/230702/localhost.png)
+
+#### Trouble Shooting
+      - docker registry에 접속이 안되는 오류
+         https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4566#note_199261985
+      - 그래서 docker run 되어 뜬 docker container가 어디서 뜬다는건데?
+        - gitlab runner 가 뜨고 있는 ip에 8080으로 접속하면 되어야 한다는데 난 안된다..
+        - 애초에 gitlab runner가 내 컴퓨터에서 뜨니까 deploy 하려면 내 컴퓨터 접속해서 해야할텐데 그 과정이 어떻게 되는건지 공부가 더 필요하다.
+        - 우선 오늘은 여기까지..
